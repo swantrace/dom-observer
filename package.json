@@ -1,0 +1,26 @@
+{
+  "name": "dom-observer",
+  "version": "1.0.0",
+  "description": "Observe DOM changes",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swantrace/dom-observer.git"
+  },
+  "keywords": [
+    "promise",
+    "MutationObserve"
+  ],
+  "author": "Fred Hong <frederickhong.5@gmail.com> (http://fredhong.ca/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/swantrace/dom-observer/issues"
+  },
+  "homepage": "https://github.com/swantrace/dom-observer#readme",
+  "dependencies": {
+    "unique-random-array": "1.0.1"
+  }
+}
