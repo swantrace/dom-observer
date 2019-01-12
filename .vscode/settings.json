@@ -1,0 +1,9 @@
+{
+  "editor.tabSize": 2,
+  "editor.autoIndent": false,
+  "editor.formatOnSave": true,
+  "javascript.format.insertSpaceAfterConstructor": true,
+  "javascript.format.enable": false,
+  "eslint.autoFixOnSave": true,
+  "eslint.alwaysShowStatus": true
+}
