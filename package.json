@@ -25,7 +25,8 @@
   "homepage": "https://github.com/swantrace/dom-observer#readme",
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
-    "@babel/runtime": "7.2.0"
+    "@babel/runtime": "7.2.0",
+    "es6-promise": "^4.2.5"
   },
   "devDependencies": {
     "@babel/core": "7.2.2",

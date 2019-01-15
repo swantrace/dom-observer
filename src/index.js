@@ -1,4 +1,26 @@
- (function(Promise, hep) {
+  var Promise = require('es6-promise').Promise;
+
+  if (window.NodeList && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = Array.prototype.forEach;
+  }
+  
+  if (!String.prototype.includes) {
+    Object.defineProperty(String.prototype, 'includes', {
+      value: function(search, start) {
+        if (typeof start !== 'number') {
+          start = 0
+        }
+        
+        if (start + search.length > this.length) {
+          return false
+        } else {
+          return this.indexOf(search, start) !== -1
+        }
+      }
+    })
+  }
+
+ (function(Promise, HTMLElement) {
   const CHILDLIST = 1;
   const ATTRIBUTE = 2;
   const CHARACTERDATA = 3;
@@ -268,7 +290,6 @@
 
   const onceNodeInserted = async function(term) {
     const nodes = await _observeChildList.call(this, term, ADD);
-    console.log(nodes);
     return Promise.resolve(nodes);
   };
 
@@ -322,7 +343,7 @@
       });
   };
 
-  Object.assign(hep, {
+  Object.assign(HTMLElement.prototype, {
     onceNodeInserted,
     onNodeInserted,
     onceNodeRemoved,
@@ -336,4 +357,4 @@
     onTextAdded,
     onTextRemoved,
   });
-})(Promise, HTMLElement.prototype);
+})(Promise, HTMLElement);
