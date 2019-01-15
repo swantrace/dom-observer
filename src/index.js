@@ -1,4 +1,4 @@
-(function(Promise, hep) {
+ (function(Promise, hep) {
   const CHILDLIST = 1;
   const ATTRIBUTE = 2;
   const CHARACTERDATA = 3;
@@ -74,6 +74,10 @@
         }
 
         childNodes = mutationRecords.reduce(reducer, []);
+        
+        childNodes = childNodes.filter(function (node, index, nodes) {
+          return nodes.indexOf(node) === index;
+        });   
 
         if (childNodes.length > 0) {
           observer.disconnect();
@@ -85,50 +89,45 @@
 
     function _addAttributeReducer(acc, cur) {
       const { target, attributeName, oldValue } = cur;
-      if (acc.indexOf(target) === -1) {
-        Array.from(searchTerm.entries()).forEach(nameValuePair => {
-          const { name, value } = nameValuePair;
-          if (attributeName == name) {
-            const currentValue = target[name === 'class' ? 'className' : name];
-            if (
-              (currentValue === value || currentValue.includes(value)) &&
-              oldValue != value &&
-              !oldValue.includes(value)
-            ) {
-              acc.push(target);
-            }
+      Array.from(searchTerm.entries()).forEach(nameValuePair => {
+        const { name, value } = nameValuePair;
+        if (attributeName == name) {
+          const currentValue = target[name === 'class' ? 'className' : name];
+          if (
+            (currentValue === value || currentValue.includes(value)) &&
+            oldValue != value &&
+            !oldValue.includes(value)
+          ) {
+            acc.push(target);
           }
-        });
-      }
+        }
+      });
       return acc;
     }
 
     function _addChildListReducer(acc, cur) {
       const { addedNodes } = cur;
       addedNodes.forEach(addedNode => {
-        if (acc.indexOf(cur) === -1) {
-          if (_isCSSSelector(searchTerm)) {
-            if (addedNode.nodeType === 1) {
-              if (addedNode.querySelectorAll(searchTerm)) {
-                addedNode.querySelectorAll(searchTerm).forEach(node => {
-                  acc.push(node);
-                });
-              }
-              if (addedNode.matches(searchTerm)) {
-                acc.push(addedNode);
-              }
+        if (_isCSSSelector(searchTerm)) {
+          if (addedNode.nodeType === 1) {
+            if (addedNode.querySelectorAll(searchTerm)) {
+              addedNode.querySelectorAll(searchTerm).forEach(node => {
+                acc.push(node);
+              });
+            } else if (addedNode.matches(searchTerm)) {
+              acc.push(addedNode);
             }
           }
-          if (_isRegularExpression(searchTerm)) {
-            if (addedNode.nodeType === 3) {
-              if (searchTerm.test(addedNode.textContent)) {
-                acc.push(addedNode.parentNode);
-              }
+        }
+        if (_isRegularExpression(searchTerm)) {
+          if (addedNode.nodeType === 3) {
+            if (searchTerm.test(addedNode.textContent)) {
+              acc.push(addedNode.parentNode);
             }
-            if (addedNode.nodeType === 1) {
-              if (searchTerm.test(addedNode.innerHTML)) {
-                acc.push(addedNode);
-              }
+          }
+          if (addedNode.nodeType === 1) {
+            if (searchTerm.test(addedNode.innerHTML)) {
+              acc.push(addedNode);
             }
           }
         }
@@ -138,48 +137,44 @@
 
     function _removeAttributeReducer(acc, cur) {
       const { target, attributeName, oldValue } = cur;
-      if (acc.indexOf(target) === -1) {
-        Array.from(searchTerm.entries()).forEach(nameValuePair => {
-          const { name, value } = nameValuePair;
-          if (attributeName === name) {
-            const currentValue = target[name === 'class' ? 'className' : name];
-            if (
-              (oldValue === value || oldValue.includes(value)) &&
-              currentValue !== value &&
-              !currentValue.includes(value)
-            ) {
-              acc.push(target);
-            }
+      Array.from(searchTerm.entries()).forEach(nameValuePair => {
+        const { name, value } = nameValuePair;
+        if (attributeName === name) {
+          const currentValue = target[name === 'class' ? 'className' : name];
+          if (
+            (oldValue === value || oldValue.includes(value)) &&
+            currentValue !== value &&
+            !currentValue.includes(value)
+          ) {
+            acc.push(target);
           }
-        });
-      }
+        }
+      });
       return acc;
     }
 
     function _removeChildListReducer(acc, cur) {
       const { removedNodes, target } = cur;
       removedNodes.forEach(removedNode => {
-        if (acc.indexOf(target) === -1) {
-          if (_isCSSSelector(searchTerm)) {
-            if (removedNode.nodeType === 1) {
-              if (
-                removedNode.querySelector(searchTerm) ||
-                removedNode.matches(searchTerm)
-              ) {
-                acc.push(target);
-              }
+        if (_isCSSSelector(searchTerm)) {
+          if (removedNode.nodeType === 1) {
+            if (
+              removedNode.querySelector(searchTerm) ||
+              removedNode.matches(searchTerm)
+            ) {
+              acc.push(target);
             }
           }
-          if (_isRegularExpression(searchTerm)) {
-            if (removedNode.nodeType === 3) {
-              if (searchTerm.test(removedNode.textContent)) {
-                acc.push(target);
-              }
+        }
+        if (_isRegularExpression(searchTerm)) {
+          if (removedNode.nodeType === 3) {
+            if (searchTerm.test(removedNode.textContent)) {
+              acc.push(target);
             }
-            if (removedNode.nodeType === 1) {
-              if (searchTerm.test(removedNode.innerHTML)) {
-                acc.push(target);
-              }
+          }
+          if (removedNode.nodeType === 1) {
+            if (searchTerm.test(removedNode.innerHTML)) {
+              acc.push(target);
             }
           }
         }
@@ -273,6 +268,7 @@
 
   const onceNodeInserted = async function(term) {
     const nodes = await _observeChildList.call(this, term, ADD);
+    console.log(nodes);
     return Promise.resolve(nodes);
   };
 
@@ -292,7 +288,6 @@
   const onNodeRemoved = function(term, callback) {
     const htmlElement = this;
     onceNodeRemoved.call(htmlElement, term).then(function handleNodes(nodes) {
-      callback(nodes);
       onceNodeRemoved.call(htmlElement, term).then(handleNodes);
     });
   };

@@ -24,9 +24,8 @@
   },
   "homepage": "https://github.com/swantrace/dom-observer#readme",
   "dependencies": {
-    "@babel/runtime": "7.2.0",
-    "bluebird": "3.5.3",
-    "select-dom": "4.1.3"
+    "@babel/polyfill": "^7.2.5",
+    "@babel/runtime": "7.2.0"
   },
   "devDependencies": {
     "@babel/core": "7.2.2",
