@@ -1,26 +1,4 @@
-  var Promise = require('es6-promise').Promise;
-
-  if (window.NodeList && !NodeList.prototype.forEach) {
-    NodeList.prototype.forEach = Array.prototype.forEach;
-  }
-  
-  if (!String.prototype.includes) {
-    Object.defineProperty(String.prototype, 'includes', {
-      value: function(search, start) {
-        if (typeof start !== 'number') {
-          start = 0
-        }
-        
-        if (start + search.length > this.length) {
-          return false
-        } else {
-          return this.indexOf(search, start) !== -1
-        }
-      }
-    })
-  }
-
- (function(Promise, HTMLElement) {
+(function(Promise, HTMLElement) {
   const CHILDLIST = 1;
   const ATTRIBUTE = 2;
   const CHARACTERDATA = 3;
@@ -59,7 +37,7 @@
       }
 
       if (type === CHARACTERDATA) {
-        if (_isRegularExpression(searchTerm)) {
+        if (!_isRegularExpression(searchTerm)) {
           reject(
             new Error(
               'You can only use regular expression to observe characterdata change'
@@ -112,7 +90,7 @@
     function _addAttributeReducer(acc, cur) {
       const { target, attributeName, oldValue } = cur;
       Array.from(searchTerm.entries()).forEach(nameValuePair => {
-        const { name, value } = nameValuePair;
+        const [ name, value ] = nameValuePair;
         if (attributeName == name) {
           const currentValue = target[name === 'class' ? 'className' : name];
           if (
@@ -160,7 +138,7 @@
     function _removeAttributeReducer(acc, cur) {
       const { target, attributeName, oldValue } = cur;
       Array.from(searchTerm.entries()).forEach(nameValuePair => {
-        const { name, value } = nameValuePair;
+        const [ name, value ] = nameValuePair;
         if (attributeName === name) {
           const currentValue = target[name === 'class' ? 'className' : name];
           if (

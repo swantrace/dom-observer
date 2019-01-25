@@ -7,7 +7,7 @@
     "test": "jest",
     "watch": "jest --watch *.js",
     "build": "webpack --mode production",
-    "start": "webpack-dev-server --open --mode development"
+    "start": "NODE_ENV=development webpack-dev-server --mode=development --hot"
   },
   "repository": {
     "type": "git",
@@ -35,6 +35,7 @@
     "@babel/preset-env": "7.2.3",
     "babel-eslint": "10.0.1",
     "babel-loader": "8.0.5",
+    "clean-webpack-plugin": "^1.0.1",
     "eslint": "5.12.0",
     "eslint-config-airbnb": "17.1.0",
     "eslint-config-prettier": "3.3.0",
@@ -48,6 +49,7 @@
     "prettier": "1.15.3",
     "webpack": "4.28.4",
     "webpack-cli": "3.2.1",
-    "webpack-dev-server": "3.1.14"
+    "webpack-dev-server": "3.1.14",
+    "webpack-md5-hash": "0.0.6"
   }
 }
