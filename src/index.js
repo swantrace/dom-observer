@@ -110,7 +110,9 @@
       addedNodes.forEach(addedNode => {
         if (_isCSSSelector(searchTerm)) {
           if (addedNode.nodeType === 1) {
-            if (addedNode.querySelectorAll(searchTerm)) {
+            if (addedNode.querySelectorAll(searchTerm) 
+                && addedNode.querySelectorAll(searchTerm).length 
+                && addedNode.querySelectorAll(searchTerm).length > 0) {
               addedNode.querySelectorAll(searchTerm).forEach(node => {
                 acc.push(node);
               });
