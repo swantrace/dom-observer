@@ -75,6 +75,7 @@
 
         childNodes = mutationRecords.reduce(reducer, []);
         
+        // remove duplicated child nodes
         childNodes = childNodes.filter(function (node, index, nodes) {
           return nodes.indexOf(node) === index;
         });   
@@ -320,7 +321,7 @@
       .then(function handleNodes(nodes) {
         callback(nodes);
         onceAttributeRemoved.call(htmlElement, term).then(handleNodes);
-      });
+      }); 
   };
 
   Object.assign(HTMLElement.prototype, {
