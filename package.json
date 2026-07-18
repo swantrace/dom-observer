@@ -1,6 +1,6 @@
 {
   "name": "dom-observer",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Observe DOM changes",
   "type": "module",
   "main": "./dist/dom-observer.umd.cjs",
