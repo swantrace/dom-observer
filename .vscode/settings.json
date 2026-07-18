@@ -4,6 +4,10 @@
   "editor.formatOnSave": true,
   "javascript.format.insertSpaceAfterConstructor": true,
   "javascript.format.enable": false,
-  "eslint.autoFixOnSave": true,
-  "eslint.alwaysShowStatus": true
+  "eslint.enable": false,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  }
 }
