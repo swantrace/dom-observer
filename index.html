@@ -3,13 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DOM Observer demo</title>
+    <meta name="description" content="See DOM Observer continuously restore HTML changed by other JavaScript." />
+    <title>DOM Observer — Protect your HTML</title>
   </head>
   <body>
-    <h1>DOM Observer</h1>
-    <p>Open the console, then add an item to see an observed DOM mutation.</p>
-    <button id="add-item" type="button">Add item</button>
-    <ul id="items"></ul>
+    <header class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow">Interactive MutationObserver library</p>
+        <h1>Keep your HTML<br /><em>the way you left it.</em></h1>
+        <p class="hero__lede">
+          Ads, widgets, extensions, and third-party scripts can rewrite your DOM.
+          DOM Observer detects those changes and gives your code a chance to restore the original markup.
+        </p>
+        <a class="hero__cta" href="#comparison">Compare once* with on* <span>↓</span></a>
+      </div>
+      <div class="hero__diagram" aria-hidden="true">
+        <div class="diagram-node diagram-node--source">Original HTML</div>
+        <div class="diagram-arrow">→ <span>other JavaScript</span> →</div>
+        <div class="diagram-node diagram-node--changed">Changed DOM</div>
+        <div class="diagram-return">DOM Observer restores it ↩</div>
+      </div>
+    </header>
+
+    <main id="comparison">
+      <section class="intro" aria-labelledby="comparison-title">
+        <div>
+          <p class="eyebrow eyebrow--dark">The important difference</p>
+          <h2 id="comparison-title">One mutation versus every mutation</h2>
+        </div>
+        <p>
+          Each demo below runs the same interfering script three times. The
+          <strong>once*</strong> method repairs only change #1, then stops. The
+          <strong>on*</strong> method repairs changes #1, #2, and #3, keeping the DOM protected.
+        </p>
+      </section>
+
+      <div class="comparison-key">
+        <span><i class="key-dot key-dot--once"></i><strong>once*</strong> Promise · one repair</span>
+        <span><i class="key-dot key-dot--on"></i><strong>on*</strong> Callback · continuous repair</span>
+        <span><i class="key-dot key-dot--script"></i>Simulated external JavaScript</span>
+      </div>
+
+      <div id="comparison-demos" class="comparisons"></div>
+    </main>
+
+    <footer>
+      <strong>DOM Observer</strong>
+      <span>TypeScript · Vite · MutationObserver</span>
+    </footer>
     <script type="module" src="/src/demo.ts"></script>
   </body>
 </html>
