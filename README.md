@@ -1,8 +1,36 @@
 # DOM Observer
 
+[![CI](https://github.com/swantrace/dom-observer/actions/workflows/ci.yml/badge.svg)](https://github.com/swantrace/dom-observer/actions/workflows/ci.yml)
+
+> [!WARNING]
+> **Project status: experimental.** This library is being redesigned from an
+> internal Shopify integration utility into a reusable browser package. Its API
+> is unstable, it is not published to npm, and production use is not currently
+> recommended.
+
 A small TypeScript library that turns DOM mutations into one-time promises or
 continuous callbacks. It supports inserted and removed nodes, attribute value
 changes, and text changes.
+
+It originated in Shopify storefront work where multiple independently installed
+apps could modify the same price or promotional markup. DOM Observer allowed an
+integration to detect those conflicts and restore the authoritative content it
+owned.
+
+## Roadmap
+
+- [x] Migrate the library to TypeScript
+- [x] Add a Vite library build
+- [x] Add DOM integration tests with Vitest
+- [x] Build an interactive recurring-conflict demo
+- [x] Run checks, tests, builds, and package validation in CI
+- [ ] Replace prototype extensions with exported functions
+- [ ] Add observer cleanup and `AbortSignal` support
+- [ ] Add mutation-loop protection and conflict limits
+- [ ] Add performance and cross-browser tests
+- [ ] Choose a unique package name
+- [ ] Deploy the interactive demo
+- [ ] Publish an npm beta
 
 ## Development
 
@@ -22,6 +50,9 @@ npm run build     # build ESM, UMD, and TypeScript declarations
 ```
 
 ## Usage
+
+> The API below represents the current experimental design and may change before
+> the first public release.
 
 Importing the library installs typed helpers on `HTMLElement.prototype`:
 
