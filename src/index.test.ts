@@ -78,6 +78,31 @@ describe("DOM observer extensions", () => {
     await vi.waitFor(() => expect(callback).toHaveBeenCalledWith([root]));
   });
 
+  it("keeps one continuous observer alive until it is stopped", async () => {
+    const root = document.createElement("div");
+    const callback = vi.fn();
+    const stop = root.onNodeInserted(".item", callback);
+
+    const first = document.createElement("span");
+    first.className = "item";
+    root.append(first);
+    await vi.waitFor(() => expect(callback).toHaveBeenCalledWith([first]));
+
+    const second = document.createElement("span");
+    second.className = "item";
+    root.append(second);
+    await vi.waitFor(() => expect(callback).toHaveBeenCalledWith([second]));
+
+    stop();
+
+    const third = document.createElement("span");
+    third.className = "item";
+    root.append(third);
+    await Promise.resolve();
+
+    expect(callback).toHaveBeenCalledTimes(2);
+  });
+
   it("rejects invalid search terms", async () => {
     const root = document.createElement("div");
 

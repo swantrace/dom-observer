@@ -1,27 +1,34 @@
 export type NodeSearchTerm = string | RegExp;
 export type AttributeSearchTerm = Map<string, string>;
 export type MutationCallback = (nodes: Node[]) => void;
+export type StopObserving = () => void;
 
 declare global {
   interface HTMLElement {
     onceNodeInserted(term: NodeSearchTerm): Promise<Node[]>;
-    onNodeInserted(term: NodeSearchTerm, callback: MutationCallback): void;
+    onNodeInserted(
+      term: NodeSearchTerm,
+      callback: MutationCallback,
+    ): StopObserving;
     onceNodeRemoved(term: NodeSearchTerm): Promise<Node[]>;
-    onNodeRemoved(term: NodeSearchTerm, callback: MutationCallback): void;
+    onNodeRemoved(
+      term: NodeSearchTerm,
+      callback: MutationCallback,
+    ): StopObserving;
     onceAttributeAdded(term: AttributeSearchTerm): Promise<Node[]>;
     onAttributeAdded(
       term: AttributeSearchTerm,
       callback: MutationCallback,
-    ): void;
+    ): StopObserving;
     onceAttributeRemoved(term: AttributeSearchTerm): Promise<Node[]>;
     onAttributeRemoved(
       term: AttributeSearchTerm,
       callback: MutationCallback,
-    ): void;
+    ): StopObserving;
     onceTextAdded(term: RegExp): Promise<Node[]>;
-    onTextAdded(term: RegExp, callback: MutationCallback): void;
+    onTextAdded(term: RegExp, callback: MutationCallback): StopObserving;
     onceTextRemoved(term: RegExp): Promise<Node[]>;
-    onTextRemoved(term: RegExp, callback: MutationCallback): void;
+    onTextRemoved(term: RegExp, callback: MutationCallback): StopObserving;
   }
 }
 
@@ -148,6 +155,52 @@ function matchingTextNodes(
   return matched && record.target.parentNode ? [record.target.parentNode] : [];
 }
 
+function matchingNodes(
+  records: MutationRecord[],
+  kind: MutationKind,
+  term: SearchTerm,
+  direction: Direction,
+): Node[] {
+  const matches = records.flatMap((record) => {
+    if (kind === "childList") {
+      const nodeTerm = term as NodeSearchTerm;
+      return direction === "added"
+        ? matchingAddedNodes(record, nodeTerm)
+        : matchingRemovedNodes(record, nodeTerm);
+    }
+
+    if (kind === "attributes") {
+      return matchingAttributeNodes(
+        record,
+        term as AttributeSearchTerm,
+        direction,
+      );
+    }
+
+    return matchingTextNodes(record, term as RegExp, direction);
+  });
+
+  return [...new Set(matches)];
+}
+
+function observerOptions(
+  kind: MutationKind,
+  term: SearchTerm,
+): MutationObserverInit {
+  return {
+    subtree: true,
+    childList: kind === "childList",
+    attributes: kind === "attributes",
+    attributeOldValue: kind === "attributes",
+    attributeFilter:
+      kind === "attributes"
+        ? [...(term as AttributeSearchTerm).keys()]
+        : undefined,
+    characterData: kind === "characterData",
+    characterDataOldValue: kind === "characterData",
+  };
+}
+
 function observeOnce(
   element: HTMLElement,
   kind: MutationKind,
@@ -163,44 +216,15 @@ function observeOnce(
     }
 
     const observer = new MutationObserver((records) => {
-      const matches = records.flatMap((record) => {
-        if (kind === "childList") {
-          const nodeTerm = term as NodeSearchTerm;
-          return direction === "added"
-            ? matchingAddedNodes(record, nodeTerm)
-            : matchingRemovedNodes(record, nodeTerm);
-        }
+      const matches = matchingNodes(records, kind, term, direction);
 
-        if (kind === "attributes") {
-          return matchingAttributeNodes(
-            record,
-            term as AttributeSearchTerm,
-            direction,
-          );
-        }
-
-        return matchingTextNodes(record, term as RegExp, direction);
-      });
-      const uniqueMatches = [...new Set(matches)];
-
-      if (uniqueMatches.length > 0) {
+      if (matches.length > 0) {
         observer.disconnect();
-        resolve(uniqueMatches);
+        resolve(matches);
       }
     });
 
-    observer.observe(element, {
-      subtree: true,
-      childList: kind === "childList",
-      attributes: kind === "attributes",
-      attributeOldValue: kind === "attributes",
-      attributeFilter:
-        kind === "attributes"
-          ? [...(term as AttributeSearchTerm).keys()]
-          : undefined,
-      characterData: kind === "characterData",
-      characterDataOldValue: kind === "characterData",
-    });
+    observer.observe(element, observerOptions(kind, term));
   });
 }
 
@@ -210,15 +234,20 @@ function observeContinuously(
   term: SearchTerm,
   direction: Direction,
   callback: MutationCallback,
-): void {
-  const observeNext = () => {
-    observeOnce(element, kind, term, direction).then((nodes) => {
-      callback(nodes);
-      observeNext();
-    });
-  };
+): StopObserving {
+  validateTerm(kind, term);
 
-  observeNext();
+  const observer = new MutationObserver((records) => {
+    const matches = matchingNodes(records, kind, term, direction);
+
+    if (matches.length > 0) {
+      callback(matches);
+    }
+  });
+
+  observer.observe(element, observerOptions(kind, term));
+
+  return () => observer.disconnect();
 }
 
 const methods = {
@@ -230,7 +259,7 @@ const methods = {
     term: NodeSearchTerm,
     callback: MutationCallback,
   ) {
-    observeContinuously(this, "childList", term, "added", callback);
+    return observeContinuously(this, "childList", term, "added", callback);
   },
   onceNodeRemoved(this: HTMLElement, term: NodeSearchTerm) {
     return observeOnce(this, "childList", term, "removed");
@@ -240,7 +269,7 @@ const methods = {
     term: NodeSearchTerm,
     callback: MutationCallback,
   ) {
-    observeContinuously(this, "childList", term, "removed", callback);
+    return observeContinuously(this, "childList", term, "removed", callback);
   },
   onceAttributeAdded(this: HTMLElement, term: AttributeSearchTerm) {
     return observeOnce(this, "attributes", term, "added");
@@ -250,7 +279,7 @@ const methods = {
     term: AttributeSearchTerm,
     callback: MutationCallback,
   ) {
-    observeContinuously(this, "attributes", term, "added", callback);
+    return observeContinuously(this, "attributes", term, "added", callback);
   },
   onceAttributeRemoved(this: HTMLElement, term: AttributeSearchTerm) {
     return observeOnce(this, "attributes", term, "removed");
@@ -260,19 +289,25 @@ const methods = {
     term: AttributeSearchTerm,
     callback: MutationCallback,
   ) {
-    observeContinuously(this, "attributes", term, "removed", callback);
+    return observeContinuously(this, "attributes", term, "removed", callback);
   },
   onceTextAdded(this: HTMLElement, term: RegExp) {
     return observeOnce(this, "characterData", term, "added");
   },
   onTextAdded(this: HTMLElement, term: RegExp, callback: MutationCallback) {
-    observeContinuously(this, "characterData", term, "added", callback);
+    return observeContinuously(this, "characterData", term, "added", callback);
   },
   onceTextRemoved(this: HTMLElement, term: RegExp) {
     return observeOnce(this, "characterData", term, "removed");
   },
   onTextRemoved(this: HTMLElement, term: RegExp, callback: MutationCallback) {
-    observeContinuously(this, "characterData", term, "removed", callback);
+    return observeContinuously(
+      this,
+      "characterData",
+      term,
+      "removed",
+      callback,
+    );
   },
 };
 
